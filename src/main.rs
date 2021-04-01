@@ -1,6 +1,10 @@
 use clap::{Arg, App};
+use std::{fs::File, process};
+use std::io::BufReader;
+use std::io::prelude::*;
+extern crate dirs;
 
-fn main() {
+fn main() -> std::io::Result<()>{
     let matches = App::new("dcli")
         .version("0.0.1")
         .author("mgurga")
@@ -22,8 +26,8 @@ fn main() {
              .long("tokenfile")
              .takes_value(true)
              .value_name("PATH")
-             .default_value("~/.config/dcli/token")
-             .about("token file location"))
+             .default_value(&*format!("{}/dcli/token", dirs::config_dir().unwrap().display()))
+             .about("token file location, token file should only contain the token, nothing else"))
         .arg(Arg::new("server")
              .short('s')
              .long("server")
@@ -49,6 +53,7 @@ fn main() {
                          .takes_value(false)
                          .required(true)))
         .get_matches();
+    let mut token = String::new();
 
     if matches.is_present("listservers") {
         if matches.is_present("verbose") {
@@ -64,6 +69,7 @@ fn main() {
         } else {
             println!("server number is not detected, the command should look like this:");
             println!("dcli -t <TOKEN> listchannels 1");
+            process::exit(1);
         }
     }
 
@@ -71,9 +77,20 @@ fn main() {
         if matches.is_present("verbose") {
             println!("using token from cli");
         }
+        token = String::from(matches.value_of("token").unwrap());
     } else {
         if matches.is_present("verbose") {
             println!("getting token from tokenpath");
+            println!("tokenpath is {}", matches.value_of("tokenfile").unwrap())
         }
+        
+        let tokenfile = File::open(matches.value_of("tokenfile").unwrap())?;
+        let mut bufreader = BufReader::new(tokenfile);
+        bufreader.read_to_string(&mut token)?;
     }
+    
+    if matches.is_present("verbose") {
+        println!("got token: {}", token);
+    }
+    Ok(())
 }
