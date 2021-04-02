@@ -2,6 +2,7 @@ use clap::{Arg, App};
 use std::{fs::File, process};
 use std::io::BufReader;
 use std::io::prelude::*;
+use serenity::client::validate_token;
 extern crate dirs;
 
 fn main() -> std::io::Result<()>{
@@ -90,7 +91,13 @@ fn main() -> std::io::Result<()>{
     }
     
     if matches.is_present("verbose") {
-        println!("got token: {}", token);
+        // println!("got token: {}", token);
     }
+
+    if !validate_token(token).is_ok() {
+        println!("token is not valid");
+        process::exit(1);
+    }
+
     Ok(())
 }
