@@ -56,6 +56,22 @@ fn main() -> std::io::Result<()>{
         .get_matches();
     let mut token = String::new();
 
+    if matches.is_present("token") {
+        if matches.is_present("verbose") {
+            println!("using token from cli");
+        }
+        token = String::from(matches.value_of("token").unwrap());
+    } else {
+        if matches.is_present("verbose") {
+            println!("getting token from tokenpath");
+            println!("tokenpath is {}", matches.value_of("tokenfile").unwrap())
+        }
+        
+        let tokenfile = File::open(matches.value_of("tokenfile").unwrap())?;
+        let mut bufreader = BufReader::new(tokenfile);
+        bufreader.read_to_string(&mut token)?;
+    }
+
     if matches.is_present("listservers") {
         if matches.is_present("verbose") {
             println!("listing servers...")
@@ -72,22 +88,6 @@ fn main() -> std::io::Result<()>{
             println!("dcli -t <TOKEN> listchannels 1");
             process::exit(1);
         }
-    }
-
-    if matches.is_present("token") {
-        if matches.is_present("verbose") {
-            println!("using token from cli");
-        }
-        token = String::from(matches.value_of("token").unwrap());
-    } else {
-        if matches.is_present("verbose") {
-            println!("getting token from tokenpath");
-            println!("tokenpath is {}", matches.value_of("tokenfile").unwrap())
-        }
-        
-        let tokenfile = File::open(matches.value_of("tokenfile").unwrap())?;
-        let mut bufreader = BufReader::new(tokenfile);
-        bufreader.read_to_string(&mut token)?;
     }
     
     if matches.is_present("verbose") {
